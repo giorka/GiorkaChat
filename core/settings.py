@@ -1,10 +1,15 @@
+from os import getenv
 from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv()  # .env
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = ''
+SECRET_KEY = getenv(key='SECRET_KEY')
 
-DEBUG = True
+DEBUG = not not getenv(key='DEBUG') == 'true'
 
 ALLOWED_HOSTS = []
 
@@ -47,11 +52,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-DATABASES = {
+DATABASES = {  # pip install psycopg2
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': getenv(key='DB_NAME'),
+        'USER': getenv(key='DB_USER'),
+        'PASSWORD': getenv(key='DB_PASSWORD'),
+        'HOST': getenv(key='DB_HOST'),
+        'PORT': getenv(key='DB_PORT'),
+    },
 }
 
 AUTH_PASSWORD_VALIDATORS = [

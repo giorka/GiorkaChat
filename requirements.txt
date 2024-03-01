@@ -4,3 +4,9 @@ djangorestframework>=0
 
 # testing
 flake8>=0
+
+# .env
+python-dotenv>=0
+
+# db
+psycopg2>=0
