@@ -2,3 +2,5 @@
 django>=0
 djangorestframework>=0
 
+# testing
+flake8>=0
