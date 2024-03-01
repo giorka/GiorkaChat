@@ -10,7 +10,7 @@ environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 application = ProtocolTypeRouter(
     dict(
         http=get_asgi_application(),
-        ws=URLRouter(
+        websocket=URLRouter(
             urlpatterns
         )
     )
