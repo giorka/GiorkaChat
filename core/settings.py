@@ -13,14 +13,21 @@ DEBUG = not not getenv(key='DEBUG') == 'true'
 
 ALLOWED_HOSTS = []
 
-INSTALLED_APPS = [
+DJANGO_APPS = (
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-]
+)
+
+INSTALLED_APPS = (
+    'api',
+    'channels',
+
+)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -51,6 +58,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
+ASGI_APPLICATION = 'chat.asgi.application'
 
 DATABASES = {  # pip install psycopg2
     'default': {
@@ -60,6 +68,15 @@ DATABASES = {  # pip install psycopg2
         'PASSWORD': getenv(key='DB_PASSWORD'),
         'HOST': getenv(key='DB_HOST'),
         'PORT': getenv(key='DB_PORT'),
+    },
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('localhost', 6379)],
+        },
     },
 }
 
@@ -78,7 +95,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-ru'
 
 TIME_ZONE = 'UTC'
 

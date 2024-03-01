@@ -2,6 +2,11 @@
 django>=0
 djangorestframework>=0
 
+# ws
+daphne>=0
+channels>=0
+channels_redis>=0
+
 # testing
 flake8>=0
 
