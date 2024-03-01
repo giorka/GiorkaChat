@@ -1,2 +1,2 @@
 ### ⚠️ NOTE: IN DEVELOPEMENT ⚠️
-#### Communication Application!
+#### Application For Communication (Django | React) 📩
