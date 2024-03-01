@@ -1,1 +1,4 @@
+# web
 django>=0
+djangorestframework>=0
+
