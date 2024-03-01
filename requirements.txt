@@ -14,4 +14,5 @@ flake8>=0
 python-dotenv>=0
 
 # db
+redis>=0
 psycopg2>=0
