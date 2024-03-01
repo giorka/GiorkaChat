@@ -24,9 +24,10 @@ DJANGO_APPS = (
 )
 
 INSTALLED_APPS = (
-    'api',
+    *DJANGO_APPS,
     'channels',
-
+    'api',
+    'chat',
 )
 
 MIDDLEWARE = [
@@ -58,7 +59,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
-ASGI_APPLICATION = 'chat.asgi.application'
+ASGI_APPLICATION = 'core.asgi.application'
 
 DATABASES = {  # pip install psycopg2
     'default': {
