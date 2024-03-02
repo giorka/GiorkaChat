@@ -1,4 +1,4 @@
-from json import loads, dumps
+from json import dumps, loads
 from typing import NoReturn, Optional
 
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -16,7 +16,10 @@ class ConsumerMixin:
 
 class Consumer(AsyncWebsocketConsumer, ConsumerMixin):
     """
-    TODO: определить метод для поиска
+    TODO: docstrings
+    TODO: разбить интерфейс по другим интерфейсам. т.к это "класс бога"
+    TODO: оптимизировать,чтобы удалялись все записи, когда нашелся собеседник. т.к там всего одна запись
+    TODO: убрать EXPIRES
     """
 
     redis = aioredis.Redis()
@@ -64,6 +67,10 @@ class Consumer(AsyncWebsocketConsumer, ConsumerMixin):
                 await self.send_message(data=data)
 
     async def join_group(self, target: str, seeker: str) -> NoReturn:
+        """
+        TODO: отправить письмо собеседнику
+        """
+
         self.group_name: str = str(hash((target.strip('specific.'))))
 
         for channel_name in (target, seeker):
@@ -76,18 +83,18 @@ class Consumer(AsyncWebsocketConsumer, ConsumerMixin):
         await self.remove(value=target)
 
     @classmethod
+    async def make_expire(cls) -> NoReturn:
+        await cls.redis.expire(cls.Meta.KEY, time=cls.Meta.CLEAR_TIME)
+
+    @classmethod
     async def add_to_query(cls, *values: tuple) -> NoReturn:
-        """
-        FIXME: добавление expires
-        """
-
         pipeline = cls.redis.pipeline()
-
-        if (await cls.redis.ttl(cls.Meta.KEY)) == -1:
-            await pipeline.expire(cls.Meta.KEY, time=cls.Meta.CLEAR_TIME)
 
         await pipeline.rpush(cls.Meta.KEY, *values)
         await pipeline.execute()
+
+        if (await cls.redis.ttl(cls.Meta.KEY)) < 0:
+            await cls.make_expire()
 
     async def search(self, data: dict) -> None:
         channel_names = await self.redis.lrange(name=self.Meta.KEY, start=0, end=0)
