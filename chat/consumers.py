@@ -28,7 +28,18 @@ class Consumer(AsyncWebsocketConsumer, ConsumerMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
-        self.group_name: Optional[str] = None
+        self.__group_name: Optional[str] = None
+
+    @property
+    def group_name(self) -> str:
+        if not self.__group_name:
+            self.__group_name = str(hash((self.channel_name.strip('specific.'))))
+
+        return self.__group_name
+
+    @group_name.setter
+    def group_name(self, value: str) -> NoReturn:
+        self.__group_name: str = value
 
     @classmethod
     async def remove(cls, value: str) -> NoReturn:
@@ -82,17 +93,15 @@ class Consumer(AsyncWebsocketConsumer, ConsumerMixin):
         channel_names = await self.redis.lrange(name=self.Meta.KEY, start=0, end=0)
         channel_name = (channel_names[0].decode('UTF-8') if channel_names else None)
         user_channel_name = data.get('channel_name')  # channel name of the user who is connecting
-r
+
         if channel_name:
             return await self.join_group(target=channel_name, seeker=user_channel_name)
 
         await self.add_to_query(user_channel_name)
 
     async def send_message(self, data: dict) -> NoReturn:
-        group_name = (self.group_name if self.group_name else str(hash(self.channel_name.strip('specific.'))))
-
         await self.channel_layer.group_send(
-            group_name,
+            self.group_name,
             {
                 'type': 'message',
                 'message': data.get('message'),
