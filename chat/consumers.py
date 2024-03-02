@@ -2,7 +2,6 @@ from json import dumps, loads
 from typing import NoReturn, Optional
 
 from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.layers import get_channel_layer
 from redis import asyncio as aioredis
 
 
@@ -18,16 +17,12 @@ class Consumer(AsyncWebsocketConsumer, ConsumerMixin):
     """
     TODO: docstrings
     TODO: разбить интерфейс по другим интерфейсам. т.к это "класс бога"
-    TODO: оптимизировать,чтобы удалялись все записи, когда нашелся собеседник. т.к там всего одна запись
-    TODO: убрать EXPIRES
     """
 
     redis = aioredis.Redis()
-    channel_layer = get_channel_layer()
 
     class Meta:
         KEY = 'query'
-        CLEAR_TIME = 43200  # NOTE: in seconds
 
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
@@ -44,16 +39,12 @@ class Consumer(AsyncWebsocketConsumer, ConsumerMixin):
     def group_name(self, value: str) -> NoReturn:
         self.__group_name: str = value
 
-    @classmethod
-    async def remove(cls, value: str) -> NoReturn:
-        await cls.redis.lrem(name=cls.Meta.KEY, count=1, value=value)
-
     async def disconnect(self, code: str) -> NoReturn:
         """
         TODO: отправить письмо собеседнику (если есть), что пользователь покинул чат
         """
 
-        await self.remove(value=self.channel_name)
+        await self.redis.delete(self.Meta.KEY)
 
     async def receive(self, text_data: str = None, bytes_data: bytes = None) -> NoReturn:
         data: dict = loads(s=text_data) | self.__dict__
@@ -80,21 +71,11 @@ class Consumer(AsyncWebsocketConsumer, ConsumerMixin):
 
             )
 
-        await self.remove(value=target)
-
-    @classmethod
-    async def make_expire(cls) -> NoReturn:
-        await cls.redis.expire(cls.Meta.KEY, time=cls.Meta.CLEAR_TIME)
+        await self.redis.delete(self.Meta.KEY)
 
     @classmethod
     async def add_to_query(cls, *values: tuple) -> NoReturn:
-        pipeline = cls.redis.pipeline()
-
-        await pipeline.rpush(cls.Meta.KEY, *values)
-        await pipeline.execute()
-
-        if (await cls.redis.ttl(cls.Meta.KEY)) < 0:
-            await cls.make_expire()
+        await cls.redis.rpush(cls.Meta.KEY, *values)
 
     async def search(self, data: dict) -> None:
         channel_names = await self.redis.lrange(name=self.Meta.KEY, start=0, end=0)
